@@ -1,9 +1,29 @@
-import React from 'react';
-import styles from './App.module.css';
+import React, {useEffect, useRef} from 'react';
 import * as Locations from './locations';
 import Map from './Map';
 import { FlyToInterpolator } from 'react-map-gl';
 import { csv } from 'd3';
+
+function useInterval(callback, delay) {
+  const savedCallback = useRef();
+
+  // Remember the latest callback.
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  // Set up the interval.
+  useEffect(() => {
+    function tick() {
+      savedCallback.current();
+    }
+    if (delay !== null) {
+      let id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+  }, [delay]);
+}
+
 
 const App = () => {
   const [viewState, setViewState] = React.useState(Locations.usa);
@@ -12,9 +32,11 @@ const App = () => {
     setViewState({
       ...viewState,
       ...destination,
-      transitionDuration: 2000,
+      transitionDuration: 1200,
       transitionInterpolator: new FlyToInterpolator(),
     });
+
+
 
   const [libraries, setLibraries] = React.useState([]);
   React.useEffect(() => {
@@ -47,15 +69,6 @@ const App = () => {
         radius={radius}
         arcsEnabled={arcsEnabled}
       />
-      <div className={styles.controls}>
-        <button onClick={handleToggleRadius}>Radius</button>
-        <button onClick={handleToggleArcs}>Arcs</button>
-        {Object.keys(Locations).map(key => (
-          <button key={key} onClick={() => handleFlyTo(Locations[key])}>
-            {key}
-          </button>
-        ))}
-      </div>
     </div>
   );
 };
